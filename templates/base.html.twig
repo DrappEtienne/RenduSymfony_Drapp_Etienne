@@ -2,13 +2,13 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}{% endblock %} - Gestion des chatons (BDD)</title>
+    <title>{% block title %}{% endblock %} - Gestion des produits (BDD)</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
 
-{{ render(controller("App\\Controller\\MenuController::_menu")) }}
+{# {{ render(controller("App\\Controller\\MenuController::_menu")) }} #}
 
 <div class="container">
     {% block body %}{% endblock %}
