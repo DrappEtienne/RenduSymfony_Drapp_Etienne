@@ -88,7 +88,39 @@ class ProduitController extends AbstractController
         }
         return $this->render('produit/formulaire.html.twig',[
             "formulaire"=>$formulaire->createView()
-            ,"h1"=>"Modifier la produit".$produit->getTitre()
+            ,"h1"=>"Modifier la produit".$produit->getReference()
+        ]);
+    }
+
+    /**
+     * @Route("/produit/supprimer/{id}",name="produit_supprimer")
+     */
+    public function supprimer(Request $request, $id)
+    {
+        //je vais chercher l'objet a supprimer
+        $repository=$this->getDoctrine()->getRepository(Produit::class);
+        $produit=$repository->find($id);
+
+        //creer le formulaire
+        $formulaire = $this->createForm(ProduitType::class, $produit);  //va creer un formulaire vide car $produit est vide
+
+        //recuperer les données du POST
+        $formulaire->handleRequest($request);    //recupere les données du post et rempli $produit
+
+        if ($formulaire->isSubmitted() && $formulaire->isValid()) {
+            //On va recuperer l'entity manager
+            $em = $this->getDoctrine()->getManager();
+            $em->remove($produit);
+            $em->flush();
+            $this->addFlash("Succes","Le produit a bien été supprimé");
+
+
+            //je m'en vais
+            return $this->redirectToRoute("produit");
+        }
+        return $this->render('produit/formulaire.html.twig',[
+            "formulaire"=>$formulaire->createView()
+            ,"h1"=>"Supprimer le produit".$produit->getReference()
         ]);
     }
 }
