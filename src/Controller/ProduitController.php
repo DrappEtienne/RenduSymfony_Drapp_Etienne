@@ -40,40 +40,44 @@ class ProduitController extends AbstractController
         $formulaire->handleRequest($request);    //recupere les données du post et rempli $categorie
 
         //On va essayer de verifier l'ean
-        $donneeForm=$formulaire->getData();         //on recupere le form
 
-        $ean=$donneeForm["EAN"];    //on recupere seulement le EAN du form qui vient detre submit
-        $cestok = 0;
-        //verif pour GTIN13
-        if(strlen($ean) === 12){
-            $totalEAN="$ean[11]*3+$ean[10]*1+$ean[9]*3+$ean[8]*1+$ean[7]*3+$ean[6]*1+$ean[5]*3+$ean[4]*1+$ean[3]*3+$ean[2]*1+$ean[1]*3+$ean[0]*1";
-            var_dump($totalEAN);
-            $MultipeDe10="(round($totalEAN)%10 === 0) ? round($totalEAN) : round(($totalEAN+10/2)/10)*10";
-            var_dump($MultipeDe10);
-            $checkDigit="$MultipeDe10-$totalEAN";
-            var_dump($checkDigit);
-            if($checkDigit == $ean[12]){
-                $cestok = 1;
-            }
-        }
-        else if(strlen($ean) == 13){
-            $totalEAN="$ean[12]*3+$ean[11]*1+$ean[10]*3+$ean[9]*1+$ean[8]*3+$ean[7]*1+$ean[6]*3+$ean[5]*1+$ean[4]*3+$ean[3]*1+$ean[2]*3+$ean[1]*1+$ean[0]*3";
-            var_dump($totalEAN);
-            $MultipeDe10="(round($totalEAN)%10 === 0) ? round($totalEAN) : round(($totalEAN+10/2)/10)*10";
-            var_dump($MultipeDe10);
-            $checkDigit="$MultipeDe10-$totalEAN";
-            var_dump($checkDigit);
-            if($checkDigit == $ean[13]){
-                $cestok = 1;
-            }
-        }
-        else{
-            var_dump("NONONONO");
-            //return $this->redirectToRoute("produit");
-        }
 
-        if($cestok == 1){
-            if($formulaire->isSubmitted() && $formulaire->isValid()){
+        if($formulaire->isSubmitted() && $formulaire->isValid()){
+
+            $donneeForm=$formulaire->getData();         //on recupere le form
+            //var_dump($donneeForm);
+
+            $ean=$donneeForm->getEAN();    //on recupere seulement le EAN du form qui vient detre submit
+            $cestok = 0;
+            //verif pour GTIN13
+            if(strlen($ean) === 13){
+                $totalEAN=($ean[11]*3+$ean[10]*1+$ean[9]*3+$ean[8]*1+$ean[7]*3+$ean[6]*1+$ean[5]*3+$ean[4]*1+$ean[3]*3+$ean[2]*1+$ean[1]*3+$ean[0]*1);
+
+                $MultipeDe10=(round($totalEAN)%10 === 0) ? round($totalEAN) : round(($totalEAN+10/2)/10)*10;
+
+                $checkDigit=($MultipeDe10-$totalEAN);
+
+                if($checkDigit === $ean[12]){
+                    $cestok++;
+                }
+            }
+            //verif pour GTIN14
+            else if(strlen($ean) === 14){
+                $totalEAN=($ean[12]*3+$ean[11]*1+$ean[10]*3+$ean[9]*1+$ean[8]*3+$ean[7]*1+$ean[6]*3+$ean[5]*1+$ean[4]*3+$ean[3]*1+$ean[2]*3+$ean[1]*1+$ean[0]*3);
+
+                $MultipeDe10=((round($totalEAN)%10 === 0) ? round($totalEAN) : round(($totalEAN+10/2)/10)*10);
+
+                $checkDigit=($MultipeDe10-$totalEAN);
+
+                if($checkDigit === $ean[13]){
+                    $cestok++;
+                }
+            }
+            else{
+                //si le GTIN ne fais pas la bonne longueur, il sort
+                return $this->redirectToRoute("produit");
+            }
+            //if($cestok === 1){       //si le calcul montre que le GTIN est bon
                 //On va recuperer l'entity manager
                 $em=$this->getDoctrine()->getManager();
 
@@ -83,11 +87,13 @@ class ProduitController extends AbstractController
                 $em->flush();
 
                 //je m'en vais
-                //return $this->redirectToRoute("produit");
-            }
+                return $this->redirectToRoute("produit");
+            //}
+            /*else if($cestok === 0){
+                $this->addFlash("ERREUR", "Le GTIN n'est pas bon");
+            }*/
+
         }
-
-
 
         return $this->render('produit/formulaire.html.twig',[
             "formulaire"=>$formulaire->createView()
